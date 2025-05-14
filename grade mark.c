@@ -14,7 +14,7 @@ int main()
     {
         printf("result: B");
     }
-        if (mark >= 40 && mark <=59)
+    if (mark >= 40 && mark <=59)
     {
         printf("result: c");
     }
@@ -22,5 +22,6 @@ int main()
     {
         printf("result: F");
     }
+
     return 0;
 }

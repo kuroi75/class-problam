@@ -12,13 +12,13 @@ int main()
     {
         printf("enther km: ");
         scanf("%f", &km);
-        printf("%.2f km = %.2f mile",km, km*0.62);
+        printf("%.2f km = %.2f mile \n",km, km*0.62);
     }
     else if(a==2)
     {
         printf("enther mile: ");
         scanf("%f", &m);
-        printf("%.2f mile = %.2f km",m, m*1.61);
+        printf("%.2f mile = %.2f km \n",m, m*1.61);
     }
     else
     {
