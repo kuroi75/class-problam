@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Soccer Battle Bot</title>
+<style>
+body { background:#111; color:#0f0; font-family:monospace; text-align:center; padding:40px; }
+h1 { margin-bottom:20px; }
+.status { margin-top:20px; font-size:20px; }
+</style>
+</head>
+<body>
+<h1>Soccer Battle Bot Control</h1>
+<p>Keyboard: WASD = move, ↑ full power, ↓ half power, SPACE = brake, +/- toggle power</p>
+<p>Gamepad: Left stick = move, Right trigger = full power</p>
+<div class="status" id="status">Checking bot status...</div>
+
+<script>
+let power = 120;       // default half power
+let lastCmd = "";
+let botOnline = false;
+
+// Check if ESP32 is online
+async function checkBot() {
+  try {
+    const resp = await fetch("/move?dir=brake&pwr=0", {method:"GET"});
+    if(resp.ok) botOnline = true;
+    else botOnline = false;
+  } catch(e) {
+    botOnline = false;
+  }
+  updateStatus(lastCmd);
+  setTimeout(checkBot, 2000); // check every 2 seconds
+}
+
+function updateStatus(cmd) {
+  const statusEl = document.getElementById("status");
+  statusEl.innerText = `Bot ${botOnline ? "connected ✅" : "offline ❌"} | Command: ${cmd || "idle"} | Power: ${power}`;
+}
+
+function sendCommand(cmd) {
+  lastCmd = cmd;
+  updateStatus(cmd);
+  if(botOnline) fetch(`/move?dir=${cmd}&pwr=${power}`).catch(e=>console.log(e));
+}
+
+// ------------------- Keyboard -------------------
+document.addEventListener("keydown",(e)=>{
+  let cmd="";
+  switch(e.key.toLowerCase()){
+    case "w": cmd="forward"; break;
+    case "s": cmd="backward"; break;
+    case "a": cmd="left"; break;
+    case "d": cmd="right"; break;
+    case "arrowup": power=255; break;
+    case "arrowdown": power=120; break;
+    case "+": power=255; break;      // manual toggle full power
+    case "-": power=120; break;      // manual toggle half power
+    case " ": cmd="brake"; break;
+  }
+  if(cmd && cmd!=lastCmd) sendCommand(cmd);
+});
+
+document.addEventListener("keyup",(e)=>{
+  if(["w","a","s","d"].includes(e.key.toLowerCase())) sendCommand("brake");
+});
+
+// ------------------- Gamepad -------------------
+function pollGamepad(){
+  const gp = navigator.getGamepads()[0];
+  if(!gp){ requestAnimationFrame(pollGamepad); return; }
+
+  let cmd = "";
+  let x = gp.axes[0];
+  let y = -gp.axes[1];
+
+  if(Math.abs(x)<0.2) x=0;
+  if(Math.abs(y)<0.2) y=0;
+
+  if(y>0) cmd="forward";
+  else if(y<0) cmd="backward";
+
+  if(x>0.2) cmd="right";
+  else if(x<-0.2) cmd="left";
+
+  power = gp.buttons[7].value>0.1 ? 255 : 120;
+
+  if(cmd && cmd!=lastCmd) sendCommand(cmd);
+  else if(!cmd && lastCmd!="brake") sendCommand("brake");
+
+  requestAnimationFrame(pollGamepad);
+}
+
+requestAnimationFrame(pollGamepad);
+checkBot();
+</script>
+</body>
+</html>
+
+)rawliteral";
